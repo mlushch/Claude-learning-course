@@ -10,7 +10,17 @@ builder.Services.AddSingleton<ITaskRepository, InMemoryTaskRepository>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
-    options.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+    options.AddDefaultPolicy(policy =>
+    {
+        if (builder.Environment.IsDevelopment())
+            policy.WithOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:8080")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        else
+            policy.WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? [])
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+    }));
 
 var app = builder.Build();
 
