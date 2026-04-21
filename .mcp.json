@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "task-manager": {
+      "command": "mcp/.venv/Scripts/python.exe",
+      "args": ["mcp/server.py"],
+      "env": {
+        "API_BASE_URL": "http://localhost:5000",
+        "API_KEY": "${TASK_MANAGER_API_KEY}"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PAT}"
+      }
+    },
+    "pylance": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-pyright"],
+      "env": {
+        "PYRIGHT_PYTHON_PATH": "mcp/.venv/Scripts/python.exe"
+      }
+    }
+  }
+}
