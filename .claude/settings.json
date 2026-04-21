@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(c:/Dev/claude-learning-course/**)",
+      "Edit(c:/Dev/claude-learning-course/**)",
+      "Write(c:/Dev/claude-learning-course/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/pre-edit.sh \"$(jq -r '.tool_input.file_path // .tool_input.path // \"\"' 2>/dev/null)\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/post-edit.sh \"$(jq -r '.tool_input.file_path // .tool_input.path // \"\"' 2>/dev/null)\""
+          }
+        ]
+      }
+    ]
+  }
+}
