@@ -84,7 +84,7 @@ async def resource_today_tasks() -> list[dict]:
     """Tasks whose dueDate is today (UTC)."""
     tasks = await client.get_tasks()
     today = date.today().isoformat()
-    return [t for t in tasks if (t.get("dueDate") or "").startswith(today)]
+    return [t for t in tasks if isinstance(t.get("dueDate"), str) and t["dueDate"].startswith(today)]
 
 
 @mcp.resource("tasks://in-progress")

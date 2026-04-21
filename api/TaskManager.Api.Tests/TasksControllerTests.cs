@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Testing;
 using TaskManager.Api.Models;
 
@@ -10,6 +12,11 @@ public class TasksControllerTests : IClassFixture<WebApplicationFactory<Program>
     private readonly HttpClient _client;
     private readonly HttpClient _unauthClient;
     private const string ApiKey = "dev-secret-key-change-me";
+
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter() }
+    };
 
     public TasksControllerTests(WebApplicationFactory<Program> factory)
     {
@@ -25,7 +32,7 @@ public class TasksControllerTests : IClassFixture<WebApplicationFactory<Program>
     {
         var response = await _client.GetAsync("/tasks");
         response.EnsureSuccessStatusCode();
-        var tasks = await response.Content.ReadFromJsonAsync<List<object>>();
+        var tasks = await response.Content.ReadFromJsonAsync<List<TaskItem>>(JsonOptions);
         Assert.NotNull(tasks);
     }
 
@@ -35,9 +42,9 @@ public class TasksControllerTests : IClassFixture<WebApplicationFactory<Program>
         await _client.PostAsJsonAsync("/tasks", new { title = "Filter test", priority = "High" });
         var response = await _client.GetAsync("/tasks?status=Open");
         response.EnsureSuccessStatusCode();
-        var tasks = await response.Content.ReadFromJsonAsync<List<Dictionary<string, object>>>();
+        var tasks = await response.Content.ReadFromJsonAsync<List<TaskItem>>(JsonOptions);
         Assert.NotNull(tasks);
-        Assert.All(tasks, t => Assert.Equal("Open", t["status"].ToString()));
+        Assert.All(tasks, t => Assert.Equal(TaskItemStatus.Open, t.Status));
     }
 
     // ── POST /tasks ──────────────────────────────────────────────────────────
@@ -73,10 +80,9 @@ public class TasksControllerTests : IClassFixture<WebApplicationFactory<Program>
     public async Task GetById_ReturnsTask_WhenFound()
     {
         var created = await _client.PostAsJsonAsync("/tasks", new { title = "Find me" });
-        var task = await created.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-        var id = task!["id"];
+        var task = await created.Content.ReadFromJsonAsync<TaskItem>(JsonOptions);
 
-        var response = await _client.GetAsync($"/tasks/{id}");
+        var response = await _client.GetAsync($"/tasks/{task!.Id}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
@@ -93,15 +99,15 @@ public class TasksControllerTests : IClassFixture<WebApplicationFactory<Program>
     public async Task Update_UpdatesTask_WhenFound()
     {
         var created = await _client.PostAsJsonAsync("/tasks", new { title = "Original" });
-        var task = await created.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-        var id = task!["id"];
+        var task = await created.Content.ReadFromJsonAsync<TaskItem>(JsonOptions);
 
-        var response = await _client.PutAsJsonAsync($"/tasks/{id}",
+        var response = await _client.PutAsJsonAsync($"/tasks/{task!.Id}",
             new { title = "Updated", status = "InProgress", priority = "High" });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var updated = await response.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-        Assert.Equal("Updated", updated!["title"].ToString());
-        Assert.Equal("InProgress", updated["status"].ToString());
+
+        var updated = await response.Content.ReadFromJsonAsync<TaskItem>(JsonOptions);
+        Assert.Equal("Updated", updated!.Title);
+        Assert.Equal(TaskItemStatus.InProgress, updated.Status);
     }
 
     [Fact]
@@ -118,10 +124,9 @@ public class TasksControllerTests : IClassFixture<WebApplicationFactory<Program>
     public async Task Delete_RemovesTask_WhenFound()
     {
         var created = await _client.PostAsJsonAsync("/tasks", new { title = "Delete me" });
-        var task = await created.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-        var id = task!["id"];
+        var task = await created.Content.ReadFromJsonAsync<TaskItem>(JsonOptions);
 
-        var response = await _client.DeleteAsync($"/tasks/{id}");
+        var response = await _client.DeleteAsync($"/tasks/{task!.Id}");
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 
