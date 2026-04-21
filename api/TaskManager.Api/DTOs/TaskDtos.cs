@@ -11,9 +11,9 @@ public record CreateTaskDto(
 );
 
 public record UpdateTaskDto(
-    [Required][MaxLength(200)] string Title,
+    [MaxLength(200)] string? Title,
     [MaxLength(2000)] string? Description,
-    TaskItemStatus Status,
-    TaskPriority Priority,
+    TaskItemStatus? Status,
+    TaskPriority? Priority,
     DateTime? DueDate
 );

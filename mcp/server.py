@@ -1,5 +1,6 @@
 from datetime import date
 
+import httpx
 from mcp.server.fastmcp import FastMCP
 
 from api_client import TaskApiClient
@@ -8,19 +9,29 @@ mcp = FastMCP("task-manager")
 client = TaskApiClient()
 
 
+def _http_error(exc: httpx.HTTPStatusError) -> dict:
+    return {"error": exc.response.text or str(exc), "status_code": exc.response.status_code}
+
+
 # ── Tools ────────────────────────────────────────────────────────────────────
 
 
 @mcp.tool()
 async def get_all_tasks(status: str | None = None) -> list[dict]:
     """Return all tasks. Optionally filter by status: Open, InProgress, Completed."""
-    return await client.get_tasks(status)
+    try:
+        return await client.get_tasks(status)
+    except httpx.HTTPStatusError as exc:
+        return [_http_error(exc)]
 
 
 @mcp.tool()
 async def get_task(task_id: str) -> dict:
-    """Fetch a single task by its UUID. Returns 404 error if not found."""
-    return await client.get_task(task_id)
+    """Fetch a single task by its UUID. Returns an error dict if not found."""
+    try:
+        return await client.get_task(task_id)
+    except httpx.HTTPStatusError as exc:
+        return _http_error(exc)
 
 
 @mcp.tool()
@@ -36,32 +47,47 @@ async def add_task(
         data["description"] = description
     if due_date:
         data["dueDate"] = due_date
-    return await client.create_task(data)
+    try:
+        return await client.create_task(data)
+    except httpx.HTTPStatusError as exc:
+        return _http_error(exc)
 
 
 @mcp.tool()
 async def update_task(
     task_id: str,
-    title: str,
-    status: str = "Open",
-    priority: str = "Medium",
+    title: str | None = None,
+    status: str | None = None,
+    priority: str | None = None,
     description: str | None = None,
     due_date: str | None = None,
 ) -> dict:
-    """Update an existing task. Status: Open | InProgress | Completed."""
-    data: dict = {"title": title, "status": status, "priority": priority}
+    """Update fields on an existing task. All fields optional. Status: Open | InProgress | Completed."""
+    data: dict = {}
+    if title is not None:
+        data["title"] = title
+    if status is not None:
+        data["status"] = status
+    if priority is not None:
+        data["priority"] = priority
     if description is not None:
         data["description"] = description
     if due_date is not None:
         data["dueDate"] = due_date
-    return await client.update_task(task_id, data)
+    try:
+        return await client.update_task(task_id, data)
+    except httpx.HTTPStatusError as exc:
+        return _http_error(exc)
 
 
 @mcp.tool()
-async def delete_task(task_id: str) -> str:
-    """Delete a task by its UUID. Returns a confirmation message."""
-    await client.delete_task(task_id)
-    return f"Task {task_id} deleted successfully."
+async def delete_task(task_id: str) -> dict | str:
+    """Delete a task by its UUID. Returns a confirmation message or error dict."""
+    try:
+        await client.delete_task(task_id)
+        return f"Task {task_id} deleted successfully."
+    except httpx.HTTPStatusError as exc:
+        return _http_error(exc)
 
 
 # ── Resources ────────────────────────────────────────────────────────────────

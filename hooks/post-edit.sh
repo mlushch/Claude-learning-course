@@ -20,7 +20,8 @@ black "$FILE" 2>/dev/null || true
 # Run tests if the file is inside mcp/
 if [[ "$FILE" == */mcp/* ]]; then
   echo "Running pytest..."
-  cd "$(dirname "$FILE")/.." && pytest tests/ -q 2>/dev/null || true
+  PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+  cd "$PROJECT_ROOT/mcp" && pytest tests/ -q 2>/dev/null || true
 fi
 
 exit 0

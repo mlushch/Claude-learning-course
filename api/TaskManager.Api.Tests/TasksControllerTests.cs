@@ -101,7 +101,7 @@ public class TasksControllerTests : IClassFixture<WebApplicationFactory<Program>
         var created = await _client.PostAsJsonAsync("/tasks", new { title = "Original" });
         var task = await created.Content.ReadFromJsonAsync<TaskItem>(JsonOptions);
 
-        var response = await _client.PutAsJsonAsync($"/tasks/{task!.Id}",
+        var response = await _client.PatchAsJsonAsync($"/tasks/{task!.Id}",
             new { title = "Updated", status = "InProgress", priority = "High" });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -111,10 +111,27 @@ public class TasksControllerTests : IClassFixture<WebApplicationFactory<Program>
     }
 
     [Fact]
+    public async Task Update_PartialUpdate_PreservesOtherFields()
+    {
+        var created = await _client.PostAsJsonAsync("/tasks",
+            new { title = "Original", priority = "High" });
+        var task = await created.Content.ReadFromJsonAsync<TaskItem>(JsonOptions);
+
+        var response = await _client.PatchAsJsonAsync($"/tasks/{task!.Id}",
+            new { status = "InProgress" });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var updated = await response.Content.ReadFromJsonAsync<TaskItem>(JsonOptions);
+        Assert.Equal("Original", updated!.Title);
+        Assert.Equal(TaskItemStatus.InProgress, updated.Status);
+        Assert.Equal(TaskPriority.High, updated.Priority);
+    }
+
+    [Fact]
     public async Task Update_Returns404_WhenNotFound()
     {
-        var response = await _client.PutAsJsonAsync($"/tasks/{Guid.NewGuid()}",
-            new { title = "X", status = "Open", priority = "Low" });
+        var response = await _client.PatchAsJsonAsync($"/tasks/{Guid.NewGuid()}",
+            new { title = "X" });
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
