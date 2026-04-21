@@ -1,3 +1,4 @@
+import asyncio
 from datetime import date
 
 import httpx
@@ -150,14 +151,31 @@ async def prioritize_tasks() -> str:
 if __name__ == "__main__":
     import argparse
 
+    import uvicorn
+    from starlette.middleware.cors import CORSMiddleware
+
     parser = argparse.ArgumentParser(description="Task Manager MCP server")
     parser.add_argument("--transport", choices=["stdio", "sse", "streamable-http"], default="stdio")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8080)
     args = parser.parse_args()
 
-    if args.transport != "stdio":
-        mcp.settings.host = args.host
-        mcp.settings.port = args.port
-
-    mcp.run(transport=args.transport)
+    try:
+        if args.transport == "stdio":
+            mcp.run(transport="stdio")
+        else:
+            app = mcp.sse_app() if args.transport == "sse" else mcp.streamable_http_app()
+            cors_app = CORSMiddleware(
+                app,
+                allow_origins=["*"],
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+            uvicorn.run(cors_app, host=args.host, port=args.port)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        try:
+            asyncio.run(client.aclose())
+        except Exception:
+            pass

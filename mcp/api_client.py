@@ -47,3 +47,6 @@ class TaskApiClient:
 
     async def delete_task(self, task_id: str) -> None:
         await self._request("DELETE", f"/tasks/{task_id}")
+
+    async def aclose(self) -> None:
+        await self._client.aclose()
