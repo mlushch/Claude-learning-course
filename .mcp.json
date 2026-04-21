@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "task-manager": {
-      "command": "mcp/.venv/Scripts/python.exe",
+      "command": "${VENV_PYTHON}",
       "args": ["mcp/server.py"],
       "env": {
         "API_BASE_URL": "http://localhost:5000",
@@ -19,7 +19,7 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-pyright"],
       "env": {
-        "PYRIGHT_PYTHON_PATH": "mcp/.venv/Scripts/python.exe"
+        "PYRIGHT_PYTHON_PATH": "${VENV_PYTHON}"
       }
     }
   }

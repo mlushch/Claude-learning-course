@@ -45,7 +45,7 @@ public class TasksController(ITaskRepository repo) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPatch("{id:guid}")]
     [ProducesResponseType<TaskItem>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -56,11 +56,11 @@ public class TasksController(ITaskRepository repo) : ControllerBase
 
         var updated = existing with
         {
-            Title = dto.Title,
-            Description = dto.Description,
-            Status = dto.Status,
-            Priority = dto.Priority,
-            DueDate = dto.DueDate,
+            Title = dto.Title ?? existing.Title,
+            Description = dto.Description ?? existing.Description,
+            Status = dto.Status ?? existing.Status,
+            Priority = dto.Priority ?? existing.Priority,
+            DueDate = dto.DueDate ?? existing.DueDate,
         };
 
         repo.Update(id, updated);

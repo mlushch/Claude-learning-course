@@ -13,9 +13,14 @@ fi
 
 PATTERNS=(
   'api[_-]?key\s*=\s*"[^"]{8,}"'
+  "api[_-]?key\s*=\s*'[^']{8,}'"
   'password\s*=\s*"[^"]{4,}"'
+  "password\s*=\s*'[^']{4,}'"
   'secret\s*=\s*"[^"]{4,}"'
-  'bearer\s+[a-zA-Z0-9\-_\.]{20,}'
+  "secret\s*=\s*'[^']{4,}'"
+  'token\s*=\s*"[^"]{8,}"'
+  "token\s*=\s*'[^']{8,}'"
+  'Authorization:\s*Bearer\s+[a-zA-Z0-9\-_\.]{20,}'
 )
 
 for pattern in "${PATTERNS[@]}"; do

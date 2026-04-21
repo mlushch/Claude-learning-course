@@ -75,7 +75,7 @@ Tool docstrings are the primary interface documentation for Claude — keep them
 
 ## Key conventions
 
-**C#:** PascalCase for types and members; `ConcurrentDictionary` for in-memory storage; DTOs are `record` types with `[Required]`/`[MaxLength]` attributes; `ApiKeyMiddleware` runs before all routes except `/health`.
+**C#:** PascalCase for types and members; `ConcurrentDictionary` for in-memory storage; DTOs are `record` types with `[MaxLength]` attributes; `CreateTaskDto` uses `[Required]` on Title; `UpdateTaskDto` has all-optional fields (PATCH semantics — only provided fields are written); `ApiKeyMiddleware` runs before all routes except `/health`.
 
 **Python:** PEP 8; `async`/`await` throughout (all `httpx` calls are async); `load_dotenv()` at module load in `api_client.py`; `raise_for_status()` on every response — never swallow HTTP errors.
 
@@ -88,6 +88,7 @@ Tool docstrings are the primary interface documentation for Claude — keep them
 | `API_KEY`           | `mcp/api_client.py` and `api/appsettings.json` |
 | `API_BASE_URL`      | `mcp/api_client.py` (default `http://localhost:5000`) |
 | `GITHUB_PAT`        | GitHub MCP server |
+| `VENV_PYTHON`       | `.mcp.json` — path to the venv Python binary. Windows: `mcp/.venv/Scripts/python.exe`; macOS/Linux: `mcp/.venv/bin/python` |
 
 Copy `mcp/.env.example` to `mcp/.env` for local development. Never commit `.env`.
 

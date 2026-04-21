@@ -87,7 +87,7 @@ async def test_create_task_raises_on_400(client):
 @pytest.mark.asyncio
 async def test_update_task_returns_updated(client):
     updated = {**SAMPLE_TASK, "status": "InProgress"}
-    respx.put(f"{BASE_URL}/tasks/abc-123").mock(
+    respx.patch(f"{BASE_URL}/tasks/abc-123").mock(
         return_value=httpx.Response(200, json=updated)
     )
     result = await client.update_task("abc-123", {"title": "Test task", "status": "InProgress"})
@@ -97,7 +97,7 @@ async def test_update_task_returns_updated(client):
 @respx.mock
 @pytest.mark.asyncio
 async def test_update_task_raises_on_404(client):
-    respx.put(f"{BASE_URL}/tasks/missing").mock(
+    respx.patch(f"{BASE_URL}/tasks/missing").mock(
         return_value=httpx.Response(404)
     )
     with pytest.raises(httpx.HTTPStatusError):
